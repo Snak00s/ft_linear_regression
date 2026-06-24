@@ -31,7 +31,7 @@ def lin_reg(mileage: list, price: list) -> list:
 
 	theta0 = 0.0
 	theta1 = 0.0
-	max_iter = 10000
+	max_iter = 1000
 	learning_rate = 0.1
 	data_len = float(len(mileage))
 	for iter in range(max_iter):
@@ -51,17 +51,20 @@ def main():
 		data = pd.read_csv('../data.csv')
 		mileage = list(data['km'])
 		price = list(data['price'])
+		plt.scatter(x=mileage, y=price)
+		result = lin_reg(mileage, price)
+		test = open('../result.txt', "w")
+		test.write(f"theta0 = {result[0]}\ntheta1 = {result[1]}")
+		test.close()
+		plt.show()
 	except FileNotFoundError:
-		exit(0)
+		print('Error: No \'data.csv\' file founded')
+		exit(1)
 	except KeyError:
 		print('Error: csv file do not containt correct columns')
-		exit(0)
-	plt.scatter(x=mileage, y=price)
-	result = lin_reg(mileage, price)
-	test = open('../result.txt', "w")
-	test.write(f"theta0 = {result[0]}\ntheta1 = {result[1]}")
-	test.close()
-	plt.show()
+		exit(1)
+	except KeyboardInterrupt:
+		pass
 	return
 
 if __name__ == "__main__":
