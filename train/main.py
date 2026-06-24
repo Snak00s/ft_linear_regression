@@ -1,9 +1,8 @@
 import pandas as pd
-import numpy as np
 import matplotlib.pyplot as plt
-from termcolor import colored
 
 def norm_minmax(data: list) -> list:
+	"""Normalize value using minmaxing"""
 	data_min = min(data)
 	data_max = max(data)
 	return ([(x - data_min) / (data_max - data_min) for x in data])
@@ -13,16 +12,19 @@ def estimatePrice(mileage: float, theta0=0.0, theta1=0.0) -> float:
     return theta0 + (theta1 * mileage)
 
 def t0_sums(mileage: list, price: list, t0=0.0, t1=0.0) -> float:
+	"""Do the sums of the theta0 formula"""
 	return sum([(estimatePrice(mileage[i], t0, t1) - price[i]) for i in range(len(mileage))])
 
 def t1_sums(mileage: list, price: list, t0=0.0, t1=0.0) -> float:
+	"""Do the sums of the theta1 formula"""
 	return sum([((estimatePrice(mileage[i], t0, t1) - price[i]) * mileage[i]) for i in range(len(mileage))])
 
 def calculate_theta(mileage: list, price: list, t0=0.0, t1=0.0) -> list:
+	"""Calculate sums of theta0 and theta1 formula, return a list with the result : [result0, result1]"""
 	return ([t0_sums(mileage, price, t0, t1), t1_sums(mileage, price, t0, t1)])
 
 def lin_reg(mileage: list, price: list) -> list:
-
+	"""Linear regression using gradient descent, optimize it with minmax normalization"""
 	min_mil = min(mileage)
 	max_mil = max(mileage)
 	n_mileage = norm_minmax(mileage)
