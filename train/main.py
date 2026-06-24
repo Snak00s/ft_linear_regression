@@ -1,29 +1,47 @@
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
+from termcolor import colored
+
+def norm_minmax(data: list) -> list:
+	data_min = min(data)
+	data_max = max(data)
+	return ([(x - data_min) / (data_max - data_min) for x in data])
 
 def estimatePrice(mileage: float, theta0=0.0, theta1=0.0) -> float:
     """Estimate the price of a car based on car mileage"""
     return theta0 + (theta1 * mileage)
 
-def t0_sums(mileage: list, price: list, t0=0.0, t1=0.0):
-	return np.sum([estimatePrice(mileage[i], t0, t1) - price[i] for i in range(len(mileage))])
+def t0_sums(mileage: list, price: list, t0=0.0, t1=0.0) -> float:
+	return sum([(estimatePrice(mileage[i], t0, t1) - price[i]) for i in range(len(mileage))])
 
-def t1_sums(mileage: list, price: list, t0=0.0, t1=0.0):
-	return np.sum([(estimatePrice(mileage[i], t0, t1) - price[i]) * mileage[i] for i in range(len(mileage))])
+def t1_sums(mileage: list, price: list, t0=0.0, t1=0.0) -> float:
+	return sum([((estimatePrice(mileage[i], t0, t1) - price[i]) * mileage[i]) for i in range(len(mileage))])
 
 def calculate_theta(mileage: list, price: list, t0=0.0, t1=0.0) -> list:
 	return ([t0_sums(mileage, price, t0, t1), t1_sums(mileage, price, t0, t1)])
 
-def algo(mileage: list, price: list) -> list:
-	theta0 = 0
-	theta1 = 0
-	max_iter = 5
-	learning_rate = 1
-	data_len = len(mileage)
+def lin_reg(mileage: list, price: list) -> list:
+
+	min_mil = min(mileage)
+	max_mil = max(mileage)
+	n_mileage = norm_minmax(mileage)
+
+	theta0 = 0.0
+	theta1 = 0.0
+	max_iter = 10000
+	learning_rate = 0.1
+	data_len = float(len(mileage))
 	for iter in range(max_iter):
-		theta_list = calculate_theta(mileage, price, theta0, theta1)
-		theta0 -= (learning_rate * (1 / data_len) * theta_list[0])
-		theta1 -= (learning_rate * (1 / data_len) * theta_list[1])
+		theta_list = calculate_theta(n_mileage, price, theta0, theta1)
+		theta_list = [(1 / data_len) * theta for theta in theta_list]
+
+		theta0 = theta0 - (learning_rate * theta_list[0])
+		theta1 = theta1 - (learning_rate * theta_list[1])
+
+	theta1 = theta1 / (max_mil - min_mil)
+	theta0 = theta0 - theta1 * min_mil
+	plt.plot([min_mil, max_mil], [estimatePrice(min_mil, theta0, theta1), estimatePrice(max_mil, theta0, theta1)])
 	return([theta0, theta1])
 
 def main():
@@ -36,7 +54,12 @@ def main():
 	except KeyError:
 		print('Error: csv file do not containt correct columns')
 		exit(0)
-	print(algo(mileage, price))
+	plt.scatter(x=mileage, y=price)
+	result = lin_reg(mileage, price)
+	test = open('../result.txt', "w")
+	test.write(f"theta0 = {result[0]}\ntheta1 = {result[1]}")
+	test.close()
+	plt.show()
 	return
 
 if __name__ == "__main__":

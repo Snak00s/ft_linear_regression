@@ -1,2 +1,0 @@
-theta0 = 5
-theta1 = 10
